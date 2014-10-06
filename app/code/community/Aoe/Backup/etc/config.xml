@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<config>
+    <modules>
+        <Aoe_Backup>
+            <version>1.0.0</version>
+        </Aoe_Backup>
+    </modules>
+    <global>
+        <helpers>
+            <Aoe_Backup>
+                <class>Aoe_Layout_Helper</class>
+            </Aoe_Backup>
+        </helpers>
+        <models>
+            <Aoe_Backup>
+                <class>Aoe_Layout_Model</class>
+            </Aoe_Backup>
+        </models>
+    </global>
+
+    <default>
+        <system>
+            <aoe_backup>
+                <aws_region>us-west-2</aws_region>
+                <path_n98>../tools/n98-magerun.phar</path_n98>
+                <excluded_tables><![CDATA[@stripped
+*_tmp
+report_event
+log*
+report_compared_product_index
+report_viewed_product_index
+index_event
+index_process_event
+catalog_product_flat_*
+asynccache*
+enterprise_logging_event*
+core_cache
+core_cache_tag]]></excluded_tables>
+                <excluded_directories><![CDATA[/catalog/product/cache/
+/catalog/product_*/
+/catalog/product/product/
+/export/
+/css/
+/js/
+/tmp/
+.svn/
+*/.svn/
+.git/
+*/.git/]]></excluded_directories>
+                <cron_expression><![CDATA[0 1 * * *]]></cron_expression>
+            </aoe_backup>
+        </system>
+    </default>
+
+    <crontab>
+        <jobs>
+            <aoe_backup>
+                <schedule>
+                    <config_path>system/aoe_backup/cron_expression</config_path>
+                </schedule>
+                <run>
+                    <model>aoe_backup/cron::backup</model>
+                </run>
+            </aoe_backup>
+        </jobs>
+    </crontab>
+
+</config>

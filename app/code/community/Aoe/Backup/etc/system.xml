@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<config>
+    <sections>
+        <system>
+            <groups>
+                <aoe_backup translate="label" module="backup">
+                    <label>AOE Backup</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>900</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+
+                        <enable translate="label">
+                            <label>Enable Backup</label>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </enable>
+
+                        <aws_region translate="label">
+                            <label>AWS Region</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </aws_region>
+
+                        <aws_access_key_id translate="label">
+                            <label>AWS Access Key Id</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>110</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </aws_access_key_id>
+
+                        <aws_secret_access_key translate="label">
+                            <label>AWS Secret Access Key</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>120</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </aws_secret_access_key>
+
+                        <aws_target_location translate="label">
+                            <label>AWS Target Location</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>130</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </aws_target_location>
+
+                        <path_n98 translate="label">
+                            <label>Path to n98-magerun</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>140</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </path_n98>
+
+                        <path_awscli translate="label">
+                            <label>Path to aws cli tool</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>150</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </path_awscli>
+
+                        <excluded_tables>
+                            <label>Excluded tables</label>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>160</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </excluded_tables>
+
+                        <local_directory translate="label">
+                            <label>Local directory</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>180</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </local_directory>
+
+                        <excluded_directories translate="label">
+                            <label>Excluded directories</label>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>170</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </excluded_directories>
+
+                        <cron_expression translate="label">
+                            <label>Cron</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>190</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </cron_expression>
+
+                    </fields>
+                </aoe_backup>
+            </groups>
+        </system>
+    </sections>
+</config>
