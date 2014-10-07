@@ -52,6 +52,7 @@
                         <aws_target_location translate="label">
                             <label>AWS Target Location</label>
                             <frontend_type>text</frontend_type>
+                            <comment><![CDATA[Should start with s3://]]></comment>
                             <sort_order>130</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>

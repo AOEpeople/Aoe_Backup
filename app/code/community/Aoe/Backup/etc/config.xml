@@ -8,12 +8,12 @@
     <global>
         <helpers>
             <Aoe_Backup>
-                <class>Aoe_Layout_Helper</class>
+                <class>Aoe_Backup_Helper</class>
             </Aoe_Backup>
         </helpers>
         <models>
             <Aoe_Backup>
-                <class>Aoe_Layout_Model</class>
+                <class>Aoe_Backup_Model</class>
             </Aoe_Backup>
         </models>
     </global>
@@ -59,7 +59,7 @@ core_cache_tag]]></excluded_tables>
                     <config_path>system/aoe_backup/cron_expression</config_path>
                 </schedule>
                 <run>
-                    <model>aoe_backup/cron::backup</model>
+                    <model>Aoe_Backup/Cron::backup</model>
                 </run>
             </aoe_backup>
         </jobs>
