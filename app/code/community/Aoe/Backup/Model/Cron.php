@@ -77,7 +77,7 @@ class Aoe_Backup_Model_Cron {
             Mage::throwException('Could not find generated database dump at ' . $targetFile . '.gz');
         }
         $filesize = filesize($targetFile . '.gz');
-        if ($filesize < 1024 * 100) { // 100 KB
+        if ($filesize < 1024 * 10) { // 10 KB
             Mage::throwException('File is too small. Check contents at ' . $targetFile . '.gz');
         }
 
