@@ -169,27 +169,6 @@ class Aoe_Backup_Model_Cron {
 
         $uploadInfo = array();
 
-        // delete created.txt
-        foreach (array(self::DB_DIR, self::FILES_DIR) as $dirSegment) {
-            $remoteFile = $targetLocation . DS . $dirSegment . DS . 'created.txt';
-            $options = array(
-                '--region ' . $region,
-                's3',
-                'rm',
-                $remoteFile
-            );
-            $output = array();
-            $returnVar = null;
-            exec('aws ' . implode(' ', $options), $output, $returnVar);
-            if ($returnVar) {
-                Mage::throwException('Error while deleting ' . $remoteFile);
-            }
-            $uploadInfo[$dirSegment] = array(
-                'output' => implode("\n", $output),
-                'returnVar' => $returnVar,
-            );
-        }
-
         $options = array(
             '--region ' . $region,
             's3',
@@ -207,6 +186,30 @@ class Aoe_Backup_Model_Cron {
             'output' => implode("\n", $output),
             'returnVar' => $returnVar,
         );
+
+        // force upload created.txt (since sync might not detect changes since the filesize doesn't change)
+        foreach (array(self::DB_DIR, self::FILES_DIR) as $dirSegment) {
+            $localFile = $this->getLocalDirectory() . DS . $dirSegment . DS . 'created.txt';
+            $remoteFile = $targetLocation . DS . $dirSegment . DS . 'created.txt';
+            $options = array(
+                '--region ' . $region,
+                's3',
+                'cp',
+                $localFile,
+                $remoteFile
+            );
+            $output = array();
+            $returnVar = null;
+            exec('aws ' . implode(' ', $options), $output, $returnVar);
+            if ($returnVar) {
+                Mage::throwException('Error while copying ' . $remoteFile);
+            }
+            $uploadInfo[$dirSegment] = array(
+                'output' => implode("\n", $output),
+                'returnVar' => $returnVar,
+            );
+        }
+
         return $uploadInfo;
     }
 
