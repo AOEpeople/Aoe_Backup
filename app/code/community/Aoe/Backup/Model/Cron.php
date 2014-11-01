@@ -20,24 +20,25 @@ class Aoe_Backup_Model_Cron {
 
         // if not enabled return $this (status skipped)
         $statistics = array();
+        $statistics['Durations'] = array();
         $startTime = microtime(true);
 
         $this->createDatabaseBackup();
 
         $stopTime = microtime(true);
-        $statistics['Duration DB backup'] = number_format($stopTime - $startTime, 2);
+        $statistics['Durations']['DB backup'] = number_format($stopTime - $startTime, 2);
         $startTime = $stopTime;
 
         $this->createMediaBackup();
 
         $stopTime = microtime(true);
-        $statistics['Duration media backup'] = number_format($stopTime - $startTime, 2);
+        $statistics['Durations']['media backup'] = number_format($stopTime - $startTime, 2);
         $startTime = $stopTime;
 
-        $this->upload();
+        $statistics['uploadinfo'] = $this->upload();
 
         $stopTime = microtime(true);
-        $statistics['Duration upload'] = number_format($stopTime - $startTime, 2);
+        $statistics['Durations']['upload'] = number_format($stopTime - $startTime, 2);
 
         // delete tmp directory if it was created
         // return some statistics (duration, filesize)
@@ -82,10 +83,14 @@ class Aoe_Backup_Model_Cron {
         }
 
         // created.txt
-        file_put_contents($this->getLocalDirectory() . DS . self::DB_DIR . DS . 'created.txt', time());
+        $filename = $this->getLocalDirectory() . DS . self::DB_DIR . DS . 'created.txt';
+        $res = file_put_contents($filename, time());
+        if ($res === FALSE) {
+            Mage::throwException('Error while writing ' . $filename);
+        }
 
-        unlink(Mage::getBaseDir('var') . '/db_dump_in_progress.lock');
-        if (!$res) {
+        $res = unlink(Mage::getBaseDir('var') . '/db_dump_in_progress.lock');
+        if ($res === FALSE) {
             Mage::throwException('Error while deleting lock file');
         }
     }
@@ -118,15 +123,23 @@ class Aoe_Backup_Model_Cron {
         $options[] = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
 
         $output = array();
+        $returnVar = null;
         // TODO: make rsync configurable instead of relying on the path
-        exec('rsync ' . implode(' ', $options), $output);
+        exec('rsync ' . implode(' ', $options), $output, $returnVar);
+        if ($returnVar) {
+            Mage::throwException('Error while rsyncing files to local directory');
+        }
 
         // TODO: exit code
 
         // TODO: optionally minify files first
 
         // created.txt
-        file_put_contents($this->getLocalDirectory() . DS . self::FILES_DIR . DS . 'created.txt', time());
+        $filename = $this->getLocalDirectory() . DS . self::FILES_DIR . DS . 'created.txt';
+        $res = file_put_contents($filename, time());
+        if ($res === FALSE) {
+            Mage::throwException('Error while writing ' . $filename);
+        }
     }
 
     protected function upload() {
@@ -154,15 +167,27 @@ class Aoe_Backup_Model_Cron {
         putenv("AWS_ACCESS_KEY_ID=$keyId");
         putenv("AWS_SECRET_ACCESS_KEY=$secret");
 
+        $uploadInfo = array();
+
         // delete created.txt
         foreach (array(self::DB_DIR, self::FILES_DIR) as $dirSegment) {
+            $remoteFile = $targetLocation . DS . $dirSegment . DS . 'created.txt';
             $options = array(
                 '--region ' . $region,
                 's3',
                 'rm',
-                $targetLocation . DS . $dirSegment . DS . 'created.txt'
+                $remoteFile
             );
-            exec('aws ' . implode(' ', $options));
+            $output = array();
+            $returnVar = null;
+            exec('aws ' . implode(' ', $options), $output, $returnVar);
+            if ($returnVar) {
+                Mage::throwException('Error while deleting ' . $remoteFile);
+            }
+            $uploadInfo[$dirSegment] = array(
+                'output' => implode("\n", $output),
+                'returnVar' => $returnVar,
+            );
         }
 
         $options = array(
@@ -172,7 +197,17 @@ class Aoe_Backup_Model_Cron {
             $this->getLocalDirectory() . DS,
             $targetLocation . DS
         );
-        exec('aws ' . implode(' ', $options));
+        $output = array();
+        $returnVar = null;
+        exec('aws ' . implode(' ', $options), $output, $returnVar);
+        if ($returnVar) {
+            Mage::throwException('Error while syncing directories');
+        }
+        $uploadInfo['sync'] = array(
+            'output' => implode("\n", $output),
+            'returnVar' => $returnVar,
+        );
+        return $uploadInfo;
     }
 
     protected function getLocalDirectory() {
