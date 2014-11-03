@@ -122,15 +122,19 @@ class Aoe_Backup_Model_Cron {
         // target
         $options[] = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
 
+
+        $path_rsync = Mage::getStoreConfig('system/aoe_backup/path_rsync');
+        if (empty($path_rsync)) {
+            Mage::throwException('No $path_rsync found (system/aoe_backup/path_rsync)');
+        }
+
+
         $output = array();
         $returnVar = null;
-        // TODO: make rsync configurable instead of relying on the path
-        exec('rsync ' . implode(' ', $options), $output, $returnVar);
+        exec($path_rsync . ' ' . implode(' ', $options), $output, $returnVar);
         if ($returnVar) {
             Mage::throwException('Error while rsyncing files to local directory');
         }
-
-        // TODO: exit code
 
         // TODO: optionally minify files first
 
@@ -147,6 +151,7 @@ class Aoe_Backup_Model_Cron {
         $region = Mage::getStoreConfig('system/aoe_backup/aws_region');
         $keyId = Mage::getStoreConfig('system/aoe_backup/aws_access_key_id');
         $secret = Mage::getStoreConfig('system/aoe_backup/aws_secret_access_key');
+        $pathAwsCli = Mage::getStoreConfig('system/aoe_backup/path_awscli');
 
         if (empty($region)) {
             Mage::throwException('No region found (system/aoe_backup/aws_region)');
@@ -156,6 +161,9 @@ class Aoe_Backup_Model_Cron {
         }
         if (empty($secret)) {
             Mage::throwException('No secret found (system/aoe_backup/aws_secret_access_key)');
+        }
+        if (empty($pathAwsCli)) {
+            Mage::throwException('No pathAwsCli found (system/aoe_backup/path_awscli)');
         }
 
         $targetLocation = Mage::getStoreConfig('system/aoe_backup/aws_target_location');
@@ -178,7 +186,7 @@ class Aoe_Backup_Model_Cron {
         );
         $output = array();
         $returnVar = null;
-        exec('aws ' . implode(' ', $options), $output, $returnVar);
+        exec($pathAwsCli .' ' . implode(' ', $options), $output, $returnVar);
         if ($returnVar) {
             Mage::throwException('Error while syncing directories');
         }
@@ -200,7 +208,7 @@ class Aoe_Backup_Model_Cron {
             );
             $output = array();
             $returnVar = null;
-            exec('aws ' . implode(' ', $options), $output, $returnVar);
+            exec($pathAwsCli . ' ' . implode(' ', $options), $output, $returnVar);
             if ($returnVar) {
                 Mage::throwException('Error while copying ' . $remoteFile);
             }
@@ -218,6 +226,7 @@ class Aoe_Backup_Model_Cron {
 
             // if configuration is empty create tmp directory and store that information
             $this->localDir = Mage::getStoreConfig('system/aoe_backup/local_directory');
+            $this->localDir = rtrim($this->localDir, DS);
 
             if (empty($this->localDir)) {
                 $this->usingTempDir = true;

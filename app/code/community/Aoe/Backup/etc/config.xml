@@ -23,6 +23,8 @@
             <aoe_backup>
                 <aws_region>us-west-2</aws_region>
                 <path_n98>../tools/n98-magerun.phar</path_n98>
+                <path_awscli>/usr/local/bin/aws</path_awscli>
+                <path_rsync>/usr/bin/rsync</path_rsync>
                 <excluded_tables><![CDATA[@stripped
 *_tmp
 report_event

@@ -77,10 +77,19 @@
                             <show_in_store>0</show_in_store>
                         </path_awscli>
 
+                        <path_rsync translate="label">
+                            <label>Path to rsync</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>160</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </path_rsync>
+
                         <excluded_tables>
                             <label>Excluded tables</label>
                             <frontend_type>textarea</frontend_type>
-                            <sort_order>160</sort_order>
+                            <sort_order>170</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -98,7 +107,7 @@
                         <excluded_directories translate="label">
                             <label>Excluded directories</label>
                             <frontend_type>textarea</frontend_type>
-                            <sort_order>170</sort_order>
+                            <sort_order>190</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
@@ -107,7 +116,7 @@
                         <cron_expression translate="label">
                             <label>Cron</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>190</sort_order>
+                            <sort_order>200</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
