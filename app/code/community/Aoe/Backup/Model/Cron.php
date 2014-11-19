@@ -13,27 +13,45 @@ class Aoe_Backup_Model_Cron {
     protected $usingTempDir = false;
     protected $localDir;
 
+    /**
+     * backup
+     *
+     * @param Aoe_Scheduler_Model_Schedule $schedule
+     * @return array
+     */
     public function backup(Aoe_Scheduler_Model_Schedule $schedule) {
         if (!Mage::getStoreConfig('system/aoe_backup/enable')) {
             return 'NOTHING: Backup is disabled in configuration';
         }
+
+        $didSomething = false;
 
         // if not enabled return $this (status skipped)
         $statistics = array();
         $statistics['Durations'] = array();
         $startTime = microtime(true);
 
-        $this->createDatabaseBackup();
+        if (Mage::getStoreConfigFlag('system/aoe_backup/backup_database')) {
+            $didSomething = true;
+            $this->createDatabaseBackup();
 
-        $stopTime = microtime(true);
-        $statistics['Durations']['DB backup'] = number_format($stopTime - $startTime, 2);
-        $startTime = $stopTime;
+            $stopTime = microtime(true);
+            $statistics['Durations']['DB backup'] = number_format($stopTime - $startTime, 2);
+            $startTime = $stopTime;
+        }
 
-        $this->createMediaBackup();
+        if (Mage::getStoreConfigFlag('system/aoe_backup/backup_files')) {
+            $didSomething = true;
+            $this->createMediaBackup();
 
-        $stopTime = microtime(true);
-        $statistics['Durations']['media backup'] = number_format($stopTime - $startTime, 2);
-        $startTime = $stopTime;
+            $stopTime = microtime(true);
+            $statistics['Durations']['media backup'] = number_format($stopTime - $startTime, 2);
+            $startTime = $stopTime;
+        }
+
+        if (!$didSomething) {
+            return 'NOTHING: Database and file backup are disabled.';
+        }
 
         $statistics['uploadinfo'] = $this->upload();
 
@@ -45,6 +63,11 @@ class Aoe_Backup_Model_Cron {
         return $statistics;
     }
 
+    /**
+     * createDatabaseBackup
+     *
+     * @return void
+     */
     protected function createDatabaseBackup() {
         $res = touch(Mage::getBaseDir('var') . '/db_dump_in_progress.lock');
         if (!$res) {
@@ -95,6 +118,11 @@ class Aoe_Backup_Model_Cron {
         }
     }
 
+    /**
+     * createMediaBackup
+     *
+     * @return void
+     */
     protected function createMediaBackup() {
 
         $helper = Mage::helper('Aoe_Backup'); /* @var $helper Aoe_Backup_Helper_Data */
@@ -146,6 +174,11 @@ class Aoe_Backup_Model_Cron {
         }
     }
 
+    /**
+     * upload
+     *
+     * @return array
+     */
     protected function upload() {
 
         $region = Mage::getStoreConfig('system/aoe_backup/aws_region');
@@ -221,6 +254,11 @@ class Aoe_Backup_Model_Cron {
         return $uploadInfo;
     }
 
+    /**
+     * getLocalDirectory
+     *
+     * @return string
+     */
     protected function getLocalDirectory() {
         if (empty($this->localDir)) {
 
