@@ -32,7 +32,7 @@ class Aoe_Backup_Helper_Data extends Mage_Core_Helper_Abstract {
     public function getN98MagerunPath() {
         $pathN98 = Mage::getStoreConfig('system/aoe_backup/path_n98');
         $baseDir = Mage::getBaseDir();
-        $path = $baseDir . DS . $pathN98;
+        $path = $pathN98;
         if (!is_file($path)) {
             Mage::throwException('Could not find n98-magerun at ' . $path);
         }
