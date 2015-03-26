@@ -1,10 +1,10 @@
 {
-    "name": "AOEPeople/Aoe_Backup",
+    "name": "aoepeople/aoe_backup",
     "description": "Scheduled systemstorage backup",
     "authors": [
         {
             "name": "Fabrizio Branca",
-            "email": "{firstname}.{lastname}@aoe.com"
+            "email": "firstname.lastname@aoe.com"
         }
     ],
     "type": "magento-module",
