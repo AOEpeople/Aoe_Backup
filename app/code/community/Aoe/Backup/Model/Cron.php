@@ -221,7 +221,7 @@ class Aoe_Backup_Model_Cron {
         $returnVar = null;
         exec($pathAwsCli .' ' . implode(' ', $options), $output, $returnVar);
         if ($returnVar) {
-            Mage::throwException('Error while syncing directories');
+            Mage::throwException('Error while syncing directories. Output: ' . implode("\n", $output));
         }
         $uploadInfo['sync'] = array(
             'output' => implode("\n", $output),
