@@ -207,6 +207,8 @@ class Aoe_Backup_Model_Cron {
 
         putenv("AWS_ACCESS_KEY_ID=$keyId");
         putenv("AWS_SECRET_ACCESS_KEY=$secret");
+        putenv("AWS_SESSION_TOKEN=");
+        putenv("AWS_DEFAULT_REGION=$region");
 
         $uploadInfo = array();
 
