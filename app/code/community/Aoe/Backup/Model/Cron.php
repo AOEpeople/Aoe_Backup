@@ -186,9 +186,9 @@ class Aoe_Backup_Model_Cron {
         $secret = Mage::getStoreConfig('system/aoe_backup/aws_secret_access_key');
         $pathAwsCli = Mage::getStoreConfig('system/aoe_backup/path_awscli');
 
-        if (empty($region)) {
-            Mage::throwException('No region found (system/aoe_backup/aws_region)');
-        }
+//        if (empty($region)) {
+//            Mage::throwException('No region found (system/aoe_backup/aws_region)');
+//        }
         if (empty($keyId)) {
             Mage::throwException('No keyId found (system/aoe_backup/aws_access_key_id)');
         }
