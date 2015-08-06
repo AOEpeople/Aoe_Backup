@@ -207,23 +207,27 @@ class Aoe_Backup_Model_Cron {
 
         putenv("AWS_ACCESS_KEY_ID=$keyId");
         putenv("AWS_SECRET_ACCESS_KEY=$secret");
-        putenv("AWS_SESSION_TOKEN=");
-        putenv("AWS_DEFAULT_REGION=$region");
+        putenv("AWS_SESSION_TOKEN"); // will be removed
+        if ($region) {
+            putenv("AWS_DEFAULT_REGION=$region");
+        } else {
+            putenv("AWS_DEFAULT_REGION"); // will be removed
+        }
 
         $uploadInfo = array();
 
-        $options = array(
-            '--region ' . $region,
-            's3',
-            'sync',
-            $this->getLocalDirectory() . DS,
-            $targetLocation . DS
-        );
+        $options = array();
+        if ($region) { $options[] = '--region ' . $region; }
+        $options[] = 's3 sync';
+        $options[] = $this->getLocalDirectory();
+        $options[] = $targetLocation . DS;
+
         $output = array();
         $returnVar = null;
-        exec($pathAwsCli .' ' . implode(' ', $options), $output, $returnVar);
+        $command = $pathAwsCli .' ' . implode(' ', $options);
+        exec($command, $output, $returnVar);
         if ($returnVar) {
-            Mage::throwException('Error while syncing directories. Output: ' . implode("\n", $output));
+            Mage::throwException('Error while syncing directories. Command: '.$command.' // Output: ' . implode("\n", $output));
         }
         $uploadInfo['sync'] = array(
             'output' => implode("\n", $output),
@@ -234,18 +238,19 @@ class Aoe_Backup_Model_Cron {
         foreach (array(self::DB_DIR, self::FILES_DIR) as $dirSegment) {
             $localFile = $this->getLocalDirectory() . DS . $dirSegment . DS . 'created.txt';
             $remoteFile = $targetLocation . DS . $dirSegment . DS . 'created.txt';
-            $options = array(
-                '--region ' . $region,
-                's3',
-                'cp',
-                $localFile,
-                $remoteFile
-            );
+
+            $options = array();
+            if ($region) { $options[] = '--region ' . $region; }
+            $options[] = 's3 cp';
+            $options[] = $localFile;
+            $options[] = $remoteFile;
+
             $output = array();
             $returnVar = null;
-            exec($pathAwsCli . ' ' . implode(' ', $options), $output, $returnVar);
+            $command = $pathAwsCli .' ' . implode(' ', $options);
+            exec($command, $output, $returnVar);
             if ($returnVar) {
-                Mage::throwException('Error while copying ' . $remoteFile);
+                Mage::throwException('Error while copying '.$remoteFile.'. Command: '.$command.' // Output: ' . implode("\n", $output));
             }
             $uploadInfo[$dirSegment] = array(
                 'output' => implode("\n", $output),
