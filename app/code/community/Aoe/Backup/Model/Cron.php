@@ -234,8 +234,18 @@ class Aoe_Backup_Model_Cron {
             'returnVar' => $returnVar,
         );
 
+        $type = array();
+
+        if (Mage::getStoreConfigFlag('system/aoe_backup/backup_database')) {
+            $type[] = self::DB_DIR;
+        }
+
+        if (Mage::getStoreConfigFlag('system/aoe_backup/backup_files')) {
+            $type[] = self::FILES_DIR;
+        }
+
         // force upload created.txt (since sync might not detect changes since the filesize doesn't change)
-        foreach (array(self::DB_DIR, self::FILES_DIR) as $dirSegment) {
+        foreach ($type as $dirSegment) {
             $localFile = $this->getLocalDirectory() . DS . $dirSegment . DS . 'created.txt';
             $remoteFile = $targetLocation . DS . $dirSegment . DS . 'created.txt';
 
