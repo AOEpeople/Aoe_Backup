@@ -24,6 +24,8 @@
                 <backup_database>1</backup_database>
                 <backup_files>1</backup_files>
                 <aws_region>us-west-2</aws_region>
+                <aws_access_key_id></aws_access_key_id>
+                <aws_secret_access_key backend_model="adminhtml/system_config_backend_encrypted" />
                 <path_n98>../tools/n98-magerun.phar</path_n98>
                 <path_awscli>/usr/local/bin/aws</path_awscli>
                 <path_rsync>/usr/bin/rsync</path_rsync>
