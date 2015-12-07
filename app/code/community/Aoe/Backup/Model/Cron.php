@@ -186,17 +186,21 @@ class Aoe_Backup_Model_Cron {
         $secret = Mage::getStoreConfig('system/aoe_backup/aws_secret_access_key');
         $pathAwsCli = Mage::getStoreConfig('system/aoe_backup/path_awscli');
 
+        if (empty($pathAwsCli)) {
+            Mage::throwException('No pathAwsCli found (system/aoe_backup/path_awscli)');
+        }
+
 //        if (empty($region)) {
 //            Mage::throwException('No region found (system/aoe_backup/aws_region)');
 //        }
-        if (empty($keyId)) {
-            Mage::throwException('No keyId found (system/aoe_backup/aws_access_key_id)');
+
+        if (!empty($keyId)) {
+            $keyId = Mage::helper('core')->decrypt($keyId);
+            putenv("AWS_ACCESS_KEY_ID=$keyId");
         }
-        if (empty($secret)) {
-            Mage::throwException('No secret found (system/aoe_backup/aws_secret_access_key)');
-        }
-        if (empty($pathAwsCli)) {
-            Mage::throwException('No pathAwsCli found (system/aoe_backup/path_awscli)');
+        if (!empty($secret)) {
+            $secret = Mage::helper('core')->decrypt($secret);
+            putenv("AWS_SECRET_ACCESS_KEY=$secret");
         }
 
         $targetLocation = Mage::getStoreConfig('system/aoe_backup/aws_target_location');
@@ -205,8 +209,8 @@ class Aoe_Backup_Model_Cron {
         }
         $targetLocation = rtrim($targetLocation, DS);
 
-        putenv("AWS_ACCESS_KEY_ID=$keyId");
-        putenv("AWS_SECRET_ACCESS_KEY=$secret");
+
+
         putenv("AWS_SESSION_TOKEN"); // will be removed
         if ($region) {
             putenv("AWS_DEFAULT_REGION=$region");
@@ -219,6 +223,7 @@ class Aoe_Backup_Model_Cron {
         $options = array();
         if ($region) { $options[] = '--region ' . $region; }
         $options[] = 's3 sync';
+        $options[] = '--exact-timestamps';
         $options[] = $this->getLocalDirectory();
         $options[] = $targetLocation . DS;
 
@@ -285,8 +290,23 @@ class Aoe_Backup_Model_Cron {
 
             if (empty($this->localDir)) {
                 $this->usingTempDir = true;
-                // sys_get_temp_dir(tmpfile())
-                Mage::throwException('Not implemented yet. Please provide configuration');
+
+                $this->localDir = Mage::getBaseDir('var') . '/aoe_backup';
+
+                $dirs = array(
+                    $this->localDir,
+                    $this->localDir . DS . self::DB_DIR,
+                    $this->localDir . DS . self::FILES_DIR
+                );
+
+                foreach ($dirs as $dir) {
+                    if (!is_dir($dir)) {
+                        $res = mkdir($dir);
+                        if ($res === false) {
+                            Mage::throwException('Error creating local dir: ' . $dir);
+                        }
+                    }
+                }
             }
 
             foreach (array($this->localDir, $this->localDir . DS . self::DB_DIR, $this->localDir . DS . self::FILES_DIR) as $dir) {
