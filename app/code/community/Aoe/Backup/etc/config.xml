@@ -23,6 +23,7 @@
             <aoe_backup>
                 <backup_database>1</backup_database>
                 <backup_files>1</backup_files>
+                <in_place>0</in_place>
                 <aws_region>us-west-2</aws_region>
                 <path_n98>../tools/n98-magerun.phar</path_n98>
                 <path_awscli>/usr/local/bin/aws</path_awscli>

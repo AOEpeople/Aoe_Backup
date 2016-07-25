@@ -12,6 +12,7 @@ class Aoe_Backup_Model_Cron {
 
     protected $usingTempDir = false;
     protected $localDir;
+    protected $inPlace;
 
     /**
      * backup
@@ -42,11 +43,12 @@ class Aoe_Backup_Model_Cron {
 
         if (Mage::getStoreConfigFlag('system/aoe_backup/backup_files')) {
             $didSomething = true;
-            $this->createMediaBackup();
-
-            $stopTime = microtime(true);
-            $statistics['Durations']['media backup'] = number_format($stopTime - $startTime, 2);
-            $startTime = $stopTime;
+            if (!$this->isInPlaceBackup()) {
+                $this->createMediaBackup();
+                $stopTime = microtime(true);
+                $statistics['Durations']['media backup'] = number_format($stopTime - $startTime, 2);
+                $startTime = $stopTime;
+            }
         }
 
         if (!$didSomething) {
@@ -106,13 +108,6 @@ class Aoe_Backup_Model_Cron {
             Mage::throwException('File is too small. Check contents at ' . $targetFile . '.gz');
         }
 
-        // created.txt
-        $filename = $this->getLocalDirectory() . DS . self::DB_DIR . DS . 'created.txt';
-        $res = file_put_contents($filename, time());
-        if ($res === FALSE) {
-            Mage::throwException('Error while writing ' . $filename);
-        }
-
         $res = unlink(Mage::getBaseDir('var') . '/db_dump_in_progress.lock');
         if ($res === FALSE) {
             Mage::throwException('Error while deleting lock file');
@@ -127,11 +122,7 @@ class Aoe_Backup_Model_Cron {
      */
     protected function createMediaBackup() {
 
-        $helper = Mage::helper('Aoe_Backup'); /* @var $helper Aoe_Backup_Helper_Data */
-        $excludedDirs = Mage::getStoreConfig('system/aoe_backup/excluded_directories');
-        $excludedDirs = $helper->pregExplode('/\s+/', $excludedDirs);
-
-        $options = array(
+        $arguments = array(
             '--archive',
             '--no-o --no-p --no-g',
             '--force',
@@ -142,15 +133,13 @@ class Aoe_Backup_Model_Cron {
             '--delete-excluded',
         );
 
-        foreach ($excludedDirs as $dir) {
-            $options[] = '--exclude='.$dir;
-        }
+        $arguments = $this->addExcludedDirsOptions($arguments);
 
         // source
-        $options[] = rtrim(Mage::getBaseDir('media'), DS) . DS;
+        $arguments[] = rtrim(Mage::getBaseDir('media'), DS) . DS;
 
         // target
-        $options[] = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
+        $arguments[] = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
 
 
         $path_rsync = Mage::getStoreConfig('system/aoe_backup/path_rsync');
@@ -161,19 +150,12 @@ class Aoe_Backup_Model_Cron {
 
         $output = array();
         $returnVar = null;
-        exec($path_rsync . ' ' . implode(' ', $options), $output, $returnVar);
+        exec($path_rsync . ' ' . implode(' ', $arguments), $output, $returnVar);
         if ($returnVar) {
-            Mage::throwException('Error while rsyncing files to local directory');
+            Mage::throwException('Error while rsyncing files to local directory.  Output: ' . implode("\n", $output));
         }
 
         // TODO: optionally minify files first
-
-        // created.txt
-        $filename = $this->getLocalDirectory() . DS . self::FILES_DIR . DS . 'created.txt';
-        $res = file_put_contents($filename, time());
-        if ($res === FALSE) {
-            Mage::throwException('Error while writing ' . $filename);
-        }
     }
 
     /**
@@ -221,56 +203,81 @@ class Aoe_Backup_Model_Cron {
             putenv("AWS_DEFAULT_REGION"); // will be removed
         }
 
-        $uploadInfo = array();
-
-        $options = array();
-        if ($region) { $options[] = '--region ' . $region; }
-        $options[] = 's3 sync';
-        $options[] = '--exact-timestamps';
-        $options[] = $this->getLocalDirectory();
-        $options[] = $targetLocation . DS;
-
-        $output = array();
-        $returnVar = null;
-        $command = $pathAwsCli .' ' . implode(' ', $options);
-        exec($command, $output, $returnVar);
-        if ($returnVar) {
-            Mage::throwException('Error while syncing directories. Command: '.$command.' // Output: ' . implode("\n", $output));
-        }
-        $uploadInfo['sync'] = array(
-            'output' => implode("\n", $output),
-            'returnVar' => $returnVar,
-        );
-
-        $type = array();
-
+        $locationMap = array();
         if (Mage::getStoreConfigFlag('system/aoe_backup/backup_database')) {
-            $type[] = self::DB_DIR;
+            $localDB = $this->getLocalDirectory() . DS . self::DB_DIR . DS;
+            $locationMap['db'] = array(
+                'source' => $localDB,
+                'target' => $targetLocation . DS . self::DB_DIR . DS
+            );
         }
 
         if (Mage::getStoreConfigFlag('system/aoe_backup/backup_files')) {
-            $type[] = self::FILES_DIR;
+            if ($this->isInPlaceBackup()) {
+                $localMedia = rtrim(Mage::getBaseDir('media'), DS);
+            } else {
+                $localMedia = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
+            }
+            $locationMap['files'] = array(
+                'source' => $localMedia,
+                'target' => $targetLocation . DS . self::FILES_DIR . DS,
+                'excludeDirs' => true
+            );
         }
 
-        // force upload created.txt (since sync might not detect changes since the filesize doesn't change)
-        foreach ($type as $dirSegment) {
-            $localFile = $this->getLocalDirectory() . DS . $dirSegment . DS . 'created.txt';
-            $remoteFile = $targetLocation . DS . $dirSegment . DS . 'created.txt';
+        $uploadInfo = array();
+        foreach ($locationMap as $type => $locationData) {
 
-            $options = array();
-            if ($region) { $options[] = '--region ' . $region; }
-            $options[] = 's3 cp';
-            $options[] = $localFile;
-            $options[] = $remoteFile;
+            $arguments = array();
+            if ($region) {
+                $options[] = '--region ' . $region;
+            }
+
+            $arguments[] = 's3 sync';
+            $options[] = '--exact-timestamps';
+
+            if (isset($locationData['excludeDirs'])) {
+                $arguments = $this->addExcludedDirsOptions($arguments);
+            }
+
+            $arguments[] = $locationData['source'];
+            $arguments[] = $locationData['target'];
 
             $output = array();
             $returnVar = null;
-            $command = $pathAwsCli .' ' . implode(' ', $options);
+            $command = $pathAwsCli .' ' . implode(' ', $arguments);
+            exec($command, $output, $returnVar);
+            if ($returnVar) {
+                Mage::throwException('Error while syncing directories. Command: '.$command.' // Output: ' . implode("\n", $output));
+            }
+            $uploadInfo[$type . ' sync'] = array(
+                'output' => implode("\n", $output),
+                'returnVar' => $returnVar,
+            );
+
+            // force upload created.txt (since sync might not detect changes since the filesize doesn't change)
+            $localFile = $locationData['source'] . 'created.txt';
+            $remoteFile = $locationData['target'] . 'created.txt';
+            $res = file_put_contents($localFile, time());
+            if ($res === FALSE) {
+                Mage::throwException('Error while writing ' . $localFile);
+            }
+
+            $arguments = array();
+            if ($region) {
+                $arguments[] = '--region ' . $region;
+            }
+            $arguments[] = 's3 cp';
+            $arguments[] = $localFile;
+            $arguments[] = $remoteFile;
+            $output = array();
+            $returnVar = null;
+            $command = $pathAwsCli .' ' . implode(' ', $arguments);
             exec($command, $output, $returnVar);
             if ($returnVar) {
                 Mage::throwException('Error while copying '.$remoteFile.'. Command: '.$command.' // Output: ' . implode("\n", $output));
             }
-            $uploadInfo[$dirSegment] = array(
+            $uploadInfo[$type . ' created.txt'] = array(
                 'output' => implode("\n", $output),
                 'returnVar' => $returnVar,
             );
@@ -322,4 +329,32 @@ class Aoe_Backup_Model_Cron {
         return $this->localDir;
     }
 
-} 
+    /**
+     * Determine if we should backup files in-place
+     *
+     * @return mixed
+     */
+    protected function isInPlaceBackup() {
+        if (empty($this->inPlace)) {
+            $this->inPlace = Mage::getStoreConfig('system/aoe_backup/in_place');
+        }
+        return $this->inPlace;
+    }
+
+    /**
+     * Gather excluded dirs and add them to an arguments array
+     *
+     * @param array $arguments
+     * @return array
+     */
+    protected function addExcludedDirsOptions($arguments) {
+        $helper = Mage::helper('Aoe_Backup'); /* @var $helper Aoe_Backup_Helper_Data */
+        $excludedDirs = Mage::getStoreConfig('system/aoe_backup/excluded_directories');
+        $excludedDirs = $helper->pregExplode('/\s+/', $excludedDirs);
+
+        foreach ($excludedDirs as $dir) {
+            $arguments[] = '--exclude='.$dir;
+        }
+        return $arguments;
+    }
+}
