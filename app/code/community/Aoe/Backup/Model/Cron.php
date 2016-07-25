@@ -64,9 +64,10 @@ class Aoe_Backup_Model_Cron {
     }
 
     /**
-     * createDatabaseBackup
+     * Create Database Backup
      *
      * @return void
+     * @throws Mage_Core_Exception
      */
     protected function createDatabaseBackup() {
         $res = touch(Mage::getBaseDir('var') . '/db_dump_in_progress.lock');
@@ -119,9 +120,10 @@ class Aoe_Backup_Model_Cron {
     }
 
     /**
-     * createMediaBackup
+     * Create Media Backup
      *
      * @return void
+     * @throws Mage_Core_Exception
      */
     protected function createMediaBackup() {
 
@@ -175,9 +177,10 @@ class Aoe_Backup_Model_Cron {
     }
 
     /**
-     * upload
+     * Upload to S3
      *
      * @return array
+     * @throws Mage_Core_Exception
      */
     protected function upload() {
 
@@ -277,9 +280,10 @@ class Aoe_Backup_Model_Cron {
     }
 
     /**
-     * getLocalDirectory
+     * Get Local Directory
      *
      * @return string
+     * @throws Mage_Core_Exception
      */
     protected function getLocalDirectory() {
         if (empty($this->localDir)) {
