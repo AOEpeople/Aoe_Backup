@@ -230,11 +230,11 @@ class Aoe_Backup_Model_Cron {
 
             $arguments = array();
             if ($region) {
-                $options[] = '--region ' . $region;
+                $arguments[] = '--region ' . $region;
             }
 
             $arguments[] = 's3 sync';
-            $options[] = '--exact-timestamps';
+            $arguments[] = '--exact-timestamps';
 
             if (isset($locationData['excludeDirs'])) {
                 $arguments = $this->addExcludedDirsOptions($arguments);
@@ -250,7 +250,7 @@ class Aoe_Backup_Model_Cron {
             if ($returnVar) {
                 Mage::throwException('Error while syncing directories. Command: '.$command.' // Output: ' . implode("\n", $output));
             }
-            $uploadInfo[$type . ' sync'] = array(
+            $uploadInfo[$command] = array(
                 'output' => implode("\n", $output),
                 'returnVar' => $returnVar,
             );
@@ -277,7 +277,7 @@ class Aoe_Backup_Model_Cron {
             if ($returnVar) {
                 Mage::throwException('Error while copying '.$remoteFile.'. Command: '.$command.' // Output: ' . implode("\n", $output));
             }
-            $uploadInfo[$type . ' created.txt'] = array(
+            $uploadInfo[$command] = array(
                 'output' => implode("\n", $output),
                 'returnVar' => $returnVar,
             );
