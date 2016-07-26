@@ -353,7 +353,7 @@ class Aoe_Backup_Model_Cron {
         $excludedDirs = $helper->pregExplode('/\s+/', $excludedDirs);
 
         foreach ($excludedDirs as $dir) {
-            $arguments[] = '--exclude='.$dir;
+            $arguments[] = '--exclude="'.$dir.'"';
         }
         return $arguments;
     }
