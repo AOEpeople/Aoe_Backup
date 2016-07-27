@@ -42,18 +42,6 @@
                             <show_in_store>0</show_in_store>
                         </backup_files>
 
-                        <in_place translate="label">
-                            <label>Back up files in place?</label>
-                            <comment><![CDATA[Will upload to S3 directly from the media directory instead of copying into a backup directory (saves space)]]></comment>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <depends><backup_files>1</backup_files></depends>
-                            <sort_order>4</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </in_place>
-
                         <aws_region translate="label">
                             <label>AWS Region</label>
                             <frontend_type>text</frontend_type>

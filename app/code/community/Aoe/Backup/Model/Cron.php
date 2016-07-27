@@ -12,7 +12,6 @@ class Aoe_Backup_Model_Cron {
 
     protected $usingTempDir = false;
     protected $localDir;
-    protected $inPlace;
 
     /**
      * backup
@@ -43,12 +42,6 @@ class Aoe_Backup_Model_Cron {
 
         if (Mage::getStoreConfigFlag('system/aoe_backup/backup_files')) {
             $didSomething = true;
-            if (!$this->isInPlaceBackup()) {
-                $this->createMediaBackup();
-                $stopTime = microtime(true);
-                $statistics['Durations']['media backup'] = number_format($stopTime - $startTime, 2);
-                $startTime = $stopTime;
-            }
         }
 
         if (!$didSomething) {
@@ -115,50 +108,6 @@ class Aoe_Backup_Model_Cron {
     }
 
     /**
-     * Create Media Backup
-     *
-     * @return void
-     * @throws Mage_Core_Exception
-     */
-    protected function createMediaBackup() {
-
-        $arguments = array(
-            '--archive',
-            '--no-o --no-p --no-g',
-            '--force',
-            '--omit-dir-times',
-            '--ignore-errors',
-            '--partial',
-            '--delete-after',
-            '--delete-excluded',
-        );
-
-        $arguments = $this->addExcludedDirsOptions($arguments);
-
-        // source
-        $arguments[] = rtrim(Mage::getBaseDir('media'), DS) . DS;
-
-        // target
-        $arguments[] = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
-
-
-        $path_rsync = Mage::getStoreConfig('system/aoe_backup/path_rsync');
-        if (empty($path_rsync)) {
-            Mage::throwException('No $path_rsync found (system/aoe_backup/path_rsync)');
-        }
-
-
-        $output = array();
-        $returnVar = null;
-        exec($path_rsync . ' ' . implode(' ', $arguments), $output, $returnVar);
-        if ($returnVar) {
-            Mage::throwException('Error while rsyncing files to local directory.  Output: ' . implode("\n", $output));
-        }
-
-        // TODO: optionally minify files first
-    }
-
-    /**
      * Upload to S3
      *
      * @return array
@@ -213,11 +162,7 @@ class Aoe_Backup_Model_Cron {
         }
 
         if (Mage::getStoreConfigFlag('system/aoe_backup/backup_files')) {
-            if ($this->isInPlaceBackup()) {
-                $localMedia = rtrim(Mage::getBaseDir('media'), DS);
-            } else {
-                $localMedia = $this->getLocalDirectory() . DS . self::FILES_DIR . DS;
-            }
+            $localMedia = rtrim(Mage::getBaseDir('media'), DS);
             $locationMap['files'] = array(
                 'source' => $localMedia,
                 'target' => $targetLocation . DS . self::FILES_DIR . DS,
@@ -327,18 +272,6 @@ class Aoe_Backup_Model_Cron {
             }
         }
         return $this->localDir;
-    }
-
-    /**
-     * Determine if we should backup files in-place
-     *
-     * @return mixed
-     */
-    protected function isInPlaceBackup() {
-        if (empty($this->inPlace)) {
-            $this->inPlace = Mage::getStoreConfig('system/aoe_backup/in_place');
-        }
-        return $this->inPlace;
     }
 
     /**
