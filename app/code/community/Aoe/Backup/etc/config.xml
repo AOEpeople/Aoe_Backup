@@ -40,17 +40,17 @@ asynccache*
 enterprise_logging_event*
 core_cache
 core_cache_tag]]></excluded_tables>
-                <excluded_directories><![CDATA[/catalog/product/cache/
-/catalog/product_*/
-/catalog/product/product/
-/export/
-/css/
-/js/
-/tmp/
-.svn/
-*/.svn/
+                <excluded_directories><![CDATA[catalog/product/cache/*
+catalog/product_*/*
+catalog/product/product/*
+export/*
+css/*
+js/*
+tmp/*
+.svn/*
+*.svn/*
 .git/
-*/.git/]]></excluded_directories>
+*.git/*]]></excluded_directories>
                 <cron_expression><![CDATA[0 1 * * *]]></cron_expression>
             </aoe_backup>
         </system>
