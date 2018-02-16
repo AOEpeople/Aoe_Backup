@@ -85,11 +85,13 @@ class Aoe_Backup_Model_Cron {
             }
         }
 
+        $excludeMethod = Mage::getStoreConfig('system/aoe_backup/exclude_method');
+
         $output = $helper->runN98Magerun(array(
             '-q',
             'db:dump',
             '--compression=gzip',
-            '--strip="'.implode(' ', $excludedTables).'"',
+            $excludeMethod . '"' . implode(' ', $excludedTables) . '"',
             $targetFile // n98-magerun will create a combined_dump.sql.gz instead because of the compression
         ));
 

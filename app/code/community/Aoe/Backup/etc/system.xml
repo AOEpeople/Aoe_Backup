@@ -117,6 +117,17 @@
                             <show_in_store>0</show_in_store>
                         </excluded_tables>
 
+                        <exclude_method>
+                            <label>Exclude Method</label>
+                            <frontend_type>select</frontend_type>
+                            <sort_order>175</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <source_model>Aoe_Backup/adminhtml_system_config_source_excludemethod</source_model>
+                            <comment>Strip will add drop/create table schemas to dump (importing the dump will clear these tables), while Exclude will completely exclude the tables from the dump.</comment>
+                        </exclude_method>
+
                         <local_directory translate="label">
                             <label>Local directory</label>
                             <frontend_type>text</frontend_type>

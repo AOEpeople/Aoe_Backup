@@ -40,6 +40,7 @@ asynccache*
 enterprise_logging_event*
 core_cache
 core_cache_tag]]></excluded_tables>
+                <exclude_method>--strip=</exclude_method>
                 <excluded_directories><![CDATA[catalog/product/cache/*
 catalog/product_*/*
 catalog/product/product/*
