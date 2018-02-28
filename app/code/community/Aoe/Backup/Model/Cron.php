@@ -75,6 +75,9 @@ class Aoe_Backup_Model_Cron {
 
         $excludedTables = Mage::getStoreConfig('system/aoe_backup/excluded_tables');
         $excludedTables = $helper->pregExplode('/\s+/', $excludedTables);
+        
+        $strippedTables = Mage::getStoreConfig('system/aoe_backup/stripped_tables');
+        $strippedTables = $helper->pregExplode('/\s+/', $strippedTables);
 
         $targetFile = $this->getLocalDirectory() . DS . self::DB_DIR . DS . 'combined_dump.sql';
 
@@ -89,7 +92,8 @@ class Aoe_Backup_Model_Cron {
             '-q',
             'db:dump',
             '--compression=gzip',
-            '--strip="'.implode(' ', $excludedTables).'"',
+            '--exclude="' . implode(' ', $excludedTables) . '"',
+            '--strip="' . implode(' ', $strippedTables) . '"',
             $targetFile // n98-magerun will create a combined_dump.sql.gz instead because of the compression
         ));
 
