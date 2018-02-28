@@ -27,7 +27,7 @@
                 <path_n98>../tools/n98-magerun.phar</path_n98>
                 <path_awscli>/usr/local/bin/aws</path_awscli>
                 <path_rsync>/usr/bin/rsync</path_rsync>
-                <excluded_tables><![CDATA[@stripped
+                <stripped_tables><![CDATA[@stripped
 *_tmp
 report_event
 log*
@@ -39,8 +39,7 @@ catalog_product_flat_*
 asynccache*
 enterprise_logging_event*
 core_cache
-core_cache_tag]]></excluded_tables>
-                <exclude_method>--strip=</exclude_method>
+core_cache_tag]]></stripped_tables>
                 <excluded_directories><![CDATA[catalog/product/cache/*
 catalog/product_*/*
 catalog/product/product/*
